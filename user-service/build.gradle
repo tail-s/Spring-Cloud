@@ -30,11 +30,22 @@ ext {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    testImplementation 'org.springframework.security:spring-security-test'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    runtimeOnly 'com.h2database:h2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    //
+    implementation group: 'org.modelmapper', name: 'modelmapper', version: '2.3.8'
+    // Hibernate Validator (Jakarta)
+    implementation 'org.hibernate.validator:hibernate-validator:8.0.0.Final'  // 최신 버전 확인 가능
+    // Optional: For Bean Validation API (Jakarta Validation)
+    implementation 'jakarta.validation:jakarta.validation-api:3.0.0'  // 최신 버전 확인 가능
 }
 
 dependencyManagement {
