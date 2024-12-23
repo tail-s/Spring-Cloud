@@ -14,7 +14,8 @@ public class WebSecurity {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/users/**").permitAll())
+//                .authorizeHttpRequests(auth -> auth.requestMatchers("/users/**").permitAll())
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/**").permitAll())
                 // h2-console의 default url이 아닌 yml파일에서 수정한 경우에도 접근 가능하도록 열여주기
                 .authorizeHttpRequests(auth -> auth.requestMatchers(PathRequest.toH2Console()).permitAll())
                 .csrf(csrf -> csrf.disable())
