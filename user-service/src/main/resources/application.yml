@@ -2,6 +2,15 @@ server:
   port: 0
 
 spring:
+  config:
+    import: "optional:configserver:"
+  cloud:
+    config:
+      uri: http://localhost:8888
+      name: ecommerce
+  profiles:
+    active: dev
+
   application:
     name: user-service
   h2:
@@ -30,3 +39,10 @@ eureka:
 
 greeting:
   message: Welcome to this SIMPLE_E_COMMERCE_USER_MSA_SERVICE
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: refresh, health, beans

@@ -18,6 +18,7 @@ public class WebSecurity {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/**").permitAll())
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/actuator/**").permitAll())
 //                .authorizeHttpRequests(auth -> auth.requestMatchers("/users/**").permitAll())
 //                .authorizeHttpRequests(auth -> auth.requestMatchers("/**")).addFilter(getAuthenticationFilter())
                 // h2-console의 default url이 아닌 yml파일에서 수정한 경우에도 접근 가능하도록 열여주기
