@@ -9,6 +9,11 @@ eureka:
       defaultZone: http://localhost:8761/eureka
 
 spring:
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: guest
+    password: guest
   config:
     import: "optional:configserver:http://localhost:8888"
   application:
@@ -56,6 +61,7 @@ spring:
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
 
         - id: catalog-service
           uri: lb://CATALOG-SERVICE
@@ -94,7 +100,7 @@ spring:
           uri: lb://USER-SERVICE
           predicates:
             - Path=/user-service/actuator/**
-            - Method=GET, POST
+            - Method=GET,POST
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/user-service/(?<segment>.*), /$\{segment}
@@ -103,4 +109,4 @@ management:
   endpoints:
     web:
       exposure:
-        include: refresh, health, beans, httptrace
+        include: refresh, health, beans, httpexchanges, busrefresh
