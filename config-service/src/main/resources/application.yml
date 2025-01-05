@@ -1,6 +1,9 @@
 server:
   port: 8888
 
+encrypt:
+  key: abcdefg
+
 spring:
   rabbitmq:
     host: 127.0.0.1

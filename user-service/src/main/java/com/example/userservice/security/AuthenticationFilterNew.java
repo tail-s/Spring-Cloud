@@ -4,6 +4,8 @@ import com.example.userservice.dto.UserDto;
 import com.example.userservice.service.UserService;
 import com.example.userservice.vo.RequestLogin;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +25,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
+import java.util.Objects;
 
 @Slf4j
 public class AuthenticationFilterNew  extends UsernamePasswordAuthenticationFilter {
@@ -59,20 +62,21 @@ public class AuthenticationFilterNew  extends UsernamePasswordAuthenticationFilt
         String userName = ((User) auth.getPrincipal()).getUsername();
         UserDto userDetails = userService.getUserDetailsByEmail(userName);
 
-        byte[] secretKeyBytes = Base64.getEncoder().encode(environment.getProperty("token.secret").getBytes());
+//        byte[] secretKeyBytes = Base64.getEncoder().encode(environment.getProperty("token.secret").getBytes());
+        byte[] secretKeyBytes = Base64.getEncoder().encode(Objects.requireNonNull(environment.getProperty("token.secret")).getBytes());
 
-//        SecretKey secretKey = Keys.hmacShaKeyFor(secretKeyBytes);
-//
-//        Instant now = Instant.now();
-//
-//        String token = Jwts.builder()
-//                .subject(userDetails.getUserId())
-//                .expiration(Date.from(now.plusMillis(Long.parseLong(environment.getProperty("token.expiration_time")))))
-//                .issuedAt(Date.from(now))
-//                .signWith(secretKey)
-//                .compact();
-//
-//        res.addHeader("token", token);
+        SecretKey secretKey = Keys.hmacShaKeyFor(secretKeyBytes);
+
+        Instant now = Instant.now();
+
+        String token = Jwts.builder()
+                .subject(userDetails.getUserId())
+                .expiration(Date.from(now.plusMillis(Long.parseLong(Objects.requireNonNull(environment.getProperty("token.expiration_time"))))))
+                .issuedAt(Date.from(now))
+                .signWith(secretKey)
+                .compact();
+
+        res.addHeader("token", token);
         res.addHeader("userId", userDetails.getUserId());
     }
 }
