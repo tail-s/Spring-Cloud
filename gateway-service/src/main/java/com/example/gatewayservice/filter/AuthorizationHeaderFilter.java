@@ -1,8 +1,8 @@
 package com.example.gatewayservice.filter;
 
-import io.jsonwebtoken.JwtParser;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.actuate.autoconfigure.observation.ObservationProperties;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -18,14 +18,17 @@ import reactor.core.publisher.Mono;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import java.security.Key;
 import java.util.Base64;
+import java.util.Objects;
 
 @Component
 @Slf4j
-public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<AuthorizationHeaderFilter> {
+public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<AuthorizationHeaderFilter.Config> {
     Environment env;
 
     AuthorizationHeaderFilter(Environment env) {
+        super(Config.class);
         this.env = env;
     }
 
@@ -34,7 +37,7 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
     }
 
     @Override
-    public GatewayFilter apply(AuthorizationHeaderFilter config) {
+    public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
 
@@ -62,24 +65,25 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
     }
 
     private boolean isJwtValid(String jwt) {
-
-        byte[] secretKeyBytes = Base64.getEncoder().encode(env.getProperty("token.secret").getBytes());
-        SecretKey signingKey = new SecretKeySpec(secretKeyBytes, SignatureAlgorithm.HS512.getJcaName());
+        byte[] secretKeyBytes = Base64.getEncoder().encode(Objects.requireNonNull(env.getProperty("token.secret")).getBytes());
+        SecretKey signingKey = Keys.hmacShaKeyFor(secretKeyBytes);
 
         boolean returnValue = true;
         String subject = null;
 
         try {
-            JwtParser jwtParser = Jwts.parser()
-                    .setSigningKey(signingKey)
-                    .build();
+            JwtParser jwtParser = Jwts.parser().
+                    verifyWith(signingKey).build();
 
-            subject = jwtParser.parseClaimsJws(jwt).getBody().getSubject();
-        } catch (Exception ex) {
+            Jws<Claims> claimsJws = jwtParser.parseSignedClaims(jwt);
+            Claims payload = claimsJws.getPayload();
+            subject = payload.getSubject();
+
+        }catch (Exception ex){
             returnValue = false;
         }
 
-        if (subject == null || subject.isEmpty()) {
+        if(subject == null || subject.isEmpty()){
             returnValue = false;
         }
 

@@ -5,6 +5,8 @@ import com.example.userservice.service.UserService;
 import com.example.userservice.vo.RequestLogin;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -21,6 +23,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import javax.crypto.SecretKey;
 import java.io.IOException;
+import java.security.Key;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -31,13 +34,14 @@ import java.util.Objects;
 public class AuthenticationFilterNew  extends UsernamePasswordAuthenticationFilter {
 
     private UserService userService;
-    private Environment environment;
+    private Environment env;
 
     public AuthenticationFilterNew(AuthenticationManager authenticationManager,
                                    UserService userService, Environment environment) {
         super(authenticationManager);
         this.userService = userService;
-        this.environment = environment;
+        this.env = environment;
+
     }
 
     @Override
@@ -62,16 +66,14 @@ public class AuthenticationFilterNew  extends UsernamePasswordAuthenticationFilt
         String userName = ((User) auth.getPrincipal()).getUsername();
         UserDto userDetails = userService.getUserDetailsByEmail(userName);
 
-//        byte[] secretKeyBytes = Base64.getEncoder().encode(environment.getProperty("token.secret").getBytes());
-        byte[] secretKeyBytes = Base64.getEncoder().encode(Objects.requireNonNull(environment.getProperty("token.secret")).getBytes());
-
+        byte[] secretKeyBytes = Base64.getEncoder().encode(Objects.requireNonNull(env.getProperty("token.secret")).getBytes());
         SecretKey secretKey = Keys.hmacShaKeyFor(secretKeyBytes);
 
         Instant now = Instant.now();
 
         String token = Jwts.builder()
                 .subject(userDetails.getUserId())
-                .expiration(Date.from(now.plusMillis(Long.parseLong(Objects.requireNonNull(environment.getProperty("token.expiration_time"))))))
+                .expiration(Date.from(now.plusMillis(Long.parseLong(env.getProperty("token.expiration_time")))))
                 .issuedAt(Date.from(now))
                 .signWith(secretKey)
                 .compact();
