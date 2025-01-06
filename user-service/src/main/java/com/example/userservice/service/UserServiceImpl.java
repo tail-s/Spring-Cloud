@@ -1,9 +1,11 @@
 package com.example.userservice.service;
 
+import com.example.userservice.client.OrderServiceClient;
 import com.example.userservice.dto.UserDto;
 import com.example.userservice.entity.UserEntity;
 import com.example.userservice.repository.UserRepository;
 import com.example.userservice.vo.ResponseOrder;
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
@@ -33,7 +35,7 @@ public class UserServiceImpl implements UserService {
     Environment env;
     RestTemplate restTemplate;
 
-//    OrderServiceClient orderServiceClient;
+    OrderServiceClient orderServiceClient;
 //    CatalogServiceClient catalogServiceClient;
 
     CircuitBreakerFactory circuitBreakerFactory;
@@ -54,17 +56,17 @@ public class UserServiceImpl implements UserService {
     public UserServiceImpl(UserRepository userRepository,
                            BCryptPasswordEncoder passwordEncoder,
                            Environment env,
-                           RestTemplate restTemplate
+                           RestTemplate restTemplate,
+                           OrderServiceClient orderServiceClient
 //            ,
-//                           OrderServiceClient orderServiceClient,
 //                           CatalogServiceClient catalogServiceClient,
 //                           CircuitBreakerFactory circuitBreakerFactory
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.env = env;
-//        this.restTemplate = restTemplate;
-//        this.orderServiceClient = orderServiceClient;
+        this.restTemplate = restTemplate;
+        this.orderServiceClient = orderServiceClient;
 //        this.catalogServiceClient = catalogServiceClient;
 //        this.circuitBreakerFactory = circuitBreakerFactory;
     }
@@ -101,13 +103,17 @@ public class UserServiceImpl implements UserService {
         /* #1-1 Connect to order-service using a rest template */
         /* @LoadBalanced 로 선언헀으면, apigateway-service로 호출 못함 */
         /* http://ORDER-SERVICE/order-service/1234-45565-34343423432/orders */
-        String orderUrl = String.format(env.getProperty("order_service.url"), userId);
+//        String orderUrl = String.format(env.getProperty("order_service.url"), userId);
 //        String orderUrl = String.format("http://127.0.0.1:8000/order-service/%s/orders", userId);
-        ResponseEntity<List<ResponseOrder>> orderListResponse =
-                restTemplate.exchange(orderUrl, HttpMethod.GET, null,
-                                            new ParameterizedTypeReference<List<ResponseOrder>>() {
-                });
-        List<ResponseOrder> ordersList = orderListResponse.getBody();
+//        ResponseEntity<List<ResponseOrder>> orderListResponse =
+//                restTemplate.exchange(orderUrl, HttpMethod.GET, null,
+//                                            new ParameterizedTypeReference<List<ResponseOrder>>() {
+//                });
+//        List<ResponseOrder> ordersList = orderListResponse.getBody();
+
+
+
+
         /* #1-2 Connect to catalog-service using a rest template */
         /* http://CATALOG-SERVICE/catalog-service/catalogs */
 //        List<ResponseCatalog> catalogList = new ArrayList<>();
@@ -121,9 +127,10 @@ public class UserServiceImpl implements UserService {
 
         /* Using a feign client */
         /* #2 Feign exception handling */
+        List<ResponseOrder> ordersList = orderServiceClient.getOrders(userId);
 //        try {
-////            ResponseEntity<List<ResponseOrder>> _ordersList = orderServiceClient.getOrders(userId);
-////            ordersList = _ordersList.getBody();
+//            ResponseEntity<List<ResponseOrder>> _ordersList = orderServiceClient.getOrders(userId);
+//            ordersList = _ordersList.getBody();
 //            ordersList = orderServiceClient.getOrders(userId);
 //        } catch (FeignException ex) {
 //            log.error(ex.getMessage());

@@ -52,6 +52,8 @@ dependencies {
     implementation 'jakarta.validation:jakarta.validation-api:3.0.0'  // 최신 버전 확인 가능
     // config server
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
+    // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-openfeign
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.2.0'
 }
 
 dependencyManagement {
